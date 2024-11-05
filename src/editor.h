@@ -1,4 +1,3 @@
-// editor.h
 #ifndef textr 1.0.
 #define textr 1.0. 
 
@@ -6,45 +5,61 @@
 #include <vector>
 #include <ctime>
 
+
+// Коды для клавиш
 enum class KeyAction {
     Null = 0,
     Enter = 13,
     CtrlQ = 17,
-    Backspace = 127
+    Backspace = 127,
+    ArrowLeft = 1000,
+    ArrowRight,
+    ArrowUp,
+    ArrowDown,
+    Save,
+    Home,
+    End,
+    PageUp,
+    PageDown,
+    Find
 };
 
-// строка
-struct row {
-    int idx;
+// Структура строки текста
+struct Row {
     std::string content;
-    Row(int index, const std::string& line) : idx(index), content(line) {}
+    Row(const std::string& line) : content(line) {}
 };
 
-// для будущего обновления...
-struct SyntaxHighlight {
-    std::string keyword;
-    int color;
-    SyntaxHighlight(const std::string& kw, int c) : keyword(kw), color(c) {}
-};
-
-// конфигурация
-class editor_config {
-public:
-    std::vector<Row> rows;
-    int cursorX = 0;
-    int cursorY = 0;
-    int screenRows = 24;
-    int screenCols = 80;
-    bool dirty = false;
-    std::string filename;
+// Основная конфигурация редактора
+class EditorConfig {
+private:
     std::string statusMessage;
     std::time_t statusMessageTime;
+    void drawRows();
+    void drawStatusBar();
+    void scroll();
+    int findTextInRow(const std::string& text, int startRow);
+
+public:
+    int cursorX = 0, cursorY = 0;       // Позиция курсора
+    int rowOffset = 0, colOffset = 0;   // Смещение для прокрутки
+    int screenRows = 24, screenCols = 80;
+    bool dirty = false;
+    std::string filename;
+    std::vector<Row> rows;
 
     EditorConfig();
-    void setStatusMessage(const std::string& message);
-    void refreshScreen();
+    void openFile(const std::string& filename);
+    void saveFile();
     void processKeypress();
-    void insertRow(const std::string& line);
+    void refreshScreen();
+    void moveCursor(KeyAction key);
+    void insertChar(char c);
+    void deleteChar();
+    void setStatusMessage(const std::string& message);
+    void search(const std::string& query);
+
+
 };
 
 #endif 
