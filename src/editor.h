@@ -1,65 +1,51 @@
-#ifndef textr 1.0.
-#define textr 1.0. 
+#ifndef EDITOR_H
+#define EDITOR_H
 
-#include <string>
 #include <vector>
+#include <string>
+#include <stack>
+#include <iostream>
+#include <fstream>
 #include <ctime>
+#include <unordered_set>
 
-
-// Коды для клавиш
-enum class KeyAction {
-    Null = 0,
-    Enter = 13,
-    CtrlQ = 17,
-    Backspace = 127,
-    ArrowLeft = 1000,
-    ArrowRight,
-    ArrowUp,
-    ArrowDown,
-    Save,
-    Home,
-    End,
-    PageUp,
-    PageDown,
-    Find
-};
-
-// Структура строки текста
 struct Row {
     std::string content;
-    Row(const std::string& line) : content(line) {}
+    Row(const std::string &str) : content(str) {}
 };
 
-// Основная конфигурация редактора
-class EditorConfig {
-private:
+class editor_config {
+public:
+    std::vector<Row> rows;
+    std::stack<std::vector<Row>> undoStack; // Undo stack
+    std::stack<std::vector<Row>> redoStack; // Redo stack
+    
+    std::string filename;
     std::string statusMessage;
-    std::time_t statusMessageTime;
+    time_t statusMessageTime;
+    int cursorX = 0, cursorY = 0;
+    int screenRows = 24, screenCols = 80;
+    int rowOffset = 0, colOffset = 0;
+    bool dirty = false;
+    
+    editor_config();
+    void open_file(const std::string& filename);
+    void save_file();
+    void message_status(const std::string& message);
+    void screen_refresh();
+    void scroll();
     void drawRows();
     void drawStatusBar();
-    void scroll();
-    int findTextInRow(const std::string& text, int startRow);
-
-public:
-    int cursorX = 0, cursorY = 0;       // Позиция курсора
-    int rowOffset = 0, colOffset = 0;   // Смещение для прокрутки
-    int screenRows = 24, screenCols = 80;
-    bool dirty = false;
-    std::string filename;
-    std::vector<Row> rows;
-
-    EditorConfig();
-    void openFile(const std::string& filename);
-    void saveFile();
-    void processKeypress();
-    void refreshScreen();
-    void moveCursor(KeyAction key);
-    void insertChar(char c);
-    void deleteChar();
-    void setStatusMessage(const std::string& message);
+    void move_cursor(char key);
+    void char_insert(char c);
+    void char_delete();
+    void undo();
+    void redo();
+    void search_prompt();
     void search(const std::string& query);
-
-
+    void key_process();
+    void apply_syntax_highlighting(Row &row);
 };
 
-#endif 
+#endif
+
