@@ -1,18 +1,11 @@
 #include "editor.h"
-#include <iostream>
-#include <fstream>
-#include <termios.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <cstdlib>
-#include <ctime>
+#include <sstream>
 
-EditorConfig::EditorConfig() {
-    setStatusMessage("Press Ctrl-Q to quit | Ctrl-S to save | Ctrl-F to find");
+editor_config::editor_config() {
+    message_status("Press Q to quit | S to save | F to find | U to undo | R to redo");
 }
 
-// Открытие файла
-void EditorConfig::openFile(const std::string& filename) {
+void editor_config::open_file(const std::string& filename) {
     this->filename = filename;
     std::ifstream file(filename);
     if (file.is_open()) {
@@ -21,11 +14,11 @@ void EditorConfig::openFile(const std::string& filename) {
             rows.push_back(Row(line));
         }
         file.close();
+        dirty = false;
     }
 }
 
-// Сохранение файла
-void EditorConfig::saveFile() {
+void editor_config::save_file() {
     if (filename.empty()) return;
     std::ofstream file(filename);
     if (file.is_open()) {
@@ -34,35 +27,28 @@ void EditorConfig::saveFile() {
         }
         file.close();
         dirty = false;
-        setStatusMessage("File saved successfully");
+        message_status("File saved successfully");
     } else {
-        setStatusMessage("Error saving file");
+        message_status("Error saving file");
     }
 }
 
-// Установка сообщения состояния
-void EditorConfig::setStatusMessage(const std::string& message) {
+void editor_config::message_status(const std::string& message) {
     statusMessage = message;
     statusMessageTime = std::time(nullptr);
 }
 
-// Перерисовка экрана с учетом прокрутки
-void EditorConfig::refreshScreen() {
+void editor_config::screen_refresh() {
     scroll();
-    std::cout << "\x1b[2J"; // Очистка экрана
-    std::cout << "\x1b[H";  // Перемещение в начало
-
+    std::cout << "\033[2J\033[H"; // Clears screen and moves cursor to top left
     drawRows();
     drawStatusBar();
-
     int cx = cursorX - colOffset + 1;
     int cy = cursorY - rowOffset + 1;
-    std::cout << "\x1b[" << cy << ";" << cx << "H";
-    std::cout << std::flush;
+    std::cout << "\033[" << cy << ";" << cx << "H" << std::flush;
 }
 
-// Прокрутка
-void EditorConfig::scroll() {
+void editor_config::scroll() {
     if (cursorY < rowOffset) {
         rowOffset = cursorY;
     }
@@ -77,49 +63,48 @@ void EditorConfig::scroll() {
     }
 }
 
-// Отрисовка строк текста
-void EditorConfig::drawRows() {
+void editor_config::drawRows() {
     for (int y = 0; y < screenRows; y++) {
         int fileRow = y + rowOffset;
         if (fileRow < rows.size()) {
-            std::string line = rows[fileRow].content;
+            Row &row = rows[fileRow];
+            apply_syntax_highlighting(row);
+            std::string line = row.content;
             if (line.length() > colOffset) {
                 line = line.substr(colOffset, screenCols);
             }
             std::cout << line;
         }
-        std::cout << "\x1b[K\n"; // Очистка до конца строки
+        std::cout << "\033[K\n"; // Clear to end of line
     }
 }
 
-// Отрисовка строки состояния
-void EditorConfig::drawStatusBar() {
-    std::cout << "\x1b[7m"; // Инвертированные цвета для строки состояния
+void editor_config::drawStatusBar() {
+    std::cout << "\033[7m"; // Inverted colors
     std::string status = filename + (dirty ? " (modified)" : "");
     std::string info = "Cursor: (" + std::to_string(cursorY + 1) + "," + std::to_string(cursorX + 1) + ")";
     status.resize(screenCols - info.size(), ' ');
-    std::cout << status << info << "\x1b[m\n";
+    std::cout << status << info << "\033[m\n";
 }
 
-// Перемещение курсора
-void EditorConfig::moveCursor(KeyAction key) {
+void editor_config::move_cursor(char key) {
     switch (key) {
-        case KeyAction::ArrowLeft:
+        case 'h': // Left
             if (cursorX > 0) cursorX--;
             break;
-        case KeyAction::ArrowRight:
+        case 'l': // Right
             if (cursorY < rows.size() && cursorX < rows[cursorY].content.length()) cursorX++;
             break;
-        case KeyAction::ArrowUp:
+        case 'k': // Up
             if (cursorY > 0) cursorY--;
             break;
-        case KeyAction::ArrowDown:
+        case 'j': // Down
             if (cursorY < rows.size() - 1) cursorY++;
             break;
-        case KeyAction::Home:
+        case '0': // Home
             cursorX = 0;
             break;
-        case KeyAction::End:
+        case '$': // End
             cursorX = rows[cursorY].content.size();
             break;
         default:
@@ -127,25 +112,49 @@ void EditorConfig::moveCursor(KeyAction key) {
     }
 }
 
-// Вставка символа
-void EditorConfig::insertChar(char c) {
+void editor_config::char_insert(char c) {
     if (cursorY >= rows.size()) rows.emplace_back("");
+    undoStack.push(rows);  // Save the current state for undo
     rows[cursorY].content.insert(cursorX, 1, c);
     cursorX++;
     dirty = true;
 }
 
-// Удаление символа
-void EditorConfig::deleteChar() {
+void editor_config::char_delete() {
     if (cursorY < rows.size() && cursorX > 0) {
+        undoStack.push(rows); // Save the current state for undo
         rows[cursorY].content.erase(cursorX - 1, 1);
         cursorX--;
         dirty = true;
     }
 }
 
-// Поиск текста
-void EditorConfig::search(const std::string& query) {
+void editor_config::undo() {
+    if (!undoStack.empty()) {
+        redoStack.push(rows); // Save the current state for redo
+        rows = undoStack.top();
+        undoStack.pop();
+        dirty = true;
+    }
+}
+
+void editor_config::redo() {
+    if (!redoStack.empty()) {
+        undoStack.push(rows); // Save the current state for undo
+        rows = redoStack.top();
+        redoStack.pop();
+        dirty = true;
+    }
+}
+
+void editor_config::search_prompt() {
+    std::string query;
+    std::cout << "Search: ";
+    std::cin >> query;
+    search(query);
+}
+
+void editor_config::search(const std::string& query) {
     int current = cursorY;
     for (int i = 0; i < rows.size(); i++) {
         int lineIndex = (current + i) % rows.size();
@@ -154,78 +163,84 @@ void EditorConfig::search(const std::string& query) {
             cursorY = lineIndex;
             cursorX = pos;
             rowOffset = cursorY;
-            setStatusMessage("Match found");
+            message_status("Match found");
             return;
         }
     }
-    setStatusMessage("No matches found");
+    message_status("No matches found");
 }
 
-// Обработка ввода
-void EditorConfig::processKeypress() {
+void editor_config::key_process() {
     char c;
-    read(STDIN_FILENO, &c, 1);
+    std::cin >> c;
 
     switch (c) {
-        case 17: // Ctrl-Q
-            std::cout << "\x1b[2J\x1b[H";
+        case 'Q':
+            std::cout << "\033[2J\033[H";
             exit(0);
+        case 'S':
+            save_file();
             break;
-        case 19: // Ctrl-S
-            saveFile();
+        case 'F':
+            search_prompt();
             break;
-        case 6: // Ctrl-F
-            search("sample"); // Строка для поиска — можно сделать запрашиваемой у пользователя
+        case 'U':
+            undo();
+            break;
+        case 'R':
+            redo();
             break;
         case 127: // Backspace
-            deleteChar();
+            char_delete();
             break;
-        case 13: // Enter
-            if (cursorY < rows.size()) {
-                rows.insert(rows.begin() + cursorY + 1, Row(""));
-                cursorY++;
-                cursorX = 0;
-                dirty = true;
-            }
+        case '\n': // Enter
+            rows.insert(rows.begin() + cursorY + 1, Row(""));
+            cursorY++;
+            cursorX = 0;
+            dirty = true;
             break;
         default:
-            if (isprint(c)) {
-                insertChar(c);
+            if (std::isprint(c)) {
+                char_insert(c);
             }
             break;
     }
 }
 
-// Включение "сырого" режима терминала
-void enableRawMode() {
-    termios raw;
-    tcgetattr(STDIN_FILENO, &raw);
-    raw.c_lflag &= ~(ECHO | ICANON | ISIG);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
+void editor_config::apply_syntax_highlighting(Row &row) {
+    static const std::unordered_set<std::string> keywords = {"int", "float", "return", "if", "else"};
+    std::string &content = row.content;
+    std::string highlighted;
+    std::istringstream iss(content);
+    std::string word;
 
-// Выключение "сырого" режима
-void disableRawMode() {
-    termios original;
-    tcgetattr(STDIN_FILENO, &original);
-    original.c_lflag |= (ECHO | ICANON | ISIG);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+    while (iss >> word) {
+        if (keywords.count(word)) {
+            highlighted += "\033[1;32m" + word + "\033[0m ";  // Green color for keywords
+        } else {
+            highlighted += word + " ";
+        }
+    }
+    content = highlighted;
 }
 
 int main(int argc, char* argv[]) {
-    enableRawMode();
-    EditorConfig editor;
+    editor_config editor;
 
     if (argc >= 2) {
-        editor.openFile(argv[1]);
+        editor.open_file(argv[1]);
     } else {
         editor.rows.emplace_back("");
     }
 
     while (true) {
-        editor.refreshScreen();
-        editor.processKeypress();
+        editor.screen_refresh();
+        editor.key_process();
     }
+
+    return 0;
+}
+
 
     disableRawMode();
     return 0;
