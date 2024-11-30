@@ -269,6 +269,7 @@ void MainWindow::on_action_New_triggered()
     }
 }
 
+void MainWindow::SaveSettings() {
 
 QSettings setting("wiiun", "textr");
 
