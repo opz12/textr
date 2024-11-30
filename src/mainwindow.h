@@ -13,6 +13,113 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+private slots:
+    void on_action_New_triggered();
+
+    void on_action_Open_triggered();
+
+    void on_action_Save_triggered();
+
+    void on_action_Save_As_triggered();
+
+    void on_action_Paste_triggered();
+
+    void on_action_Copy_triggered();
+
+    void on_action_Cut_triggered();
+
+    void on_action_Undo_triggered();
+
+    void on_action_Redo_triggered();
+
+    void on_action_Exit_triggered();
+
+    void on_action_Font_triggered();
+
+    void on_action_Color_triggered();
+
+    void on_action_Delete_triggered();
+
+    void on_action_Select_All_triggered();
+
+    void on_actionPrint_triggered();
+
+    void on_action_New_Window_triggered();
+
+    void on_action_menubar_Appearance_triggered();
+
+    void on_action_menubar_Font_triggered();
+
+    void on_action_menubar_Font_Color_triggered();
+
+    void on_action_textEdit_Appearance_triggered();
+
+    void on_action_menubar_Appearance_Reset_to_default_triggered();
+
+    void on_action_Word_Wrap_triggered();
+
+    void on_action_Vertical_triggered();
+
+    void on_action_Horizontal_triggered();
+
+    void on_action_Both_triggered();
+
+    void on_action_None_triggered();
+
+    void on_action_Box_triggered();
+
+    void on_action_Panel_triggered();
+
+    void on_action_Win_Panel_triggered();
+
+    void on_action_Styled_Panel_triggered();
+
+    void on_action_No_Frame_triggered();
+
+    void on_textEdit_textChanged();
+
+    void on_action_textEdit_Reset_to_default_triggered();
+
+    void outsideNotepadOpen();
+
+    void on_action_statusBar_On_triggered();
+
+    void on_action_statusBar_Off_triggered();
+
+    void on_action_Word_Counter_On_triggered();
+
+    void on_action_Word_Counter_Off_triggered();
+
+    void on_action_Character_Counter_On_triggered();
+
+    void on_action_Character_Counter_Off_triggered();
+
+    void on_action_Lines_Counter_On_triggered();
+
+    void on_action_Lines_Counter_Off_triggered();
+
+    void on_action_statusBar_Font_triggered();
+
+    void on_action_statusBar_Font_Color_triggered();
+
+    void on_action_statusBar_Appearance_triggered();
+
+    void on_action_statusBar_Reset_to_default_triggered();
+
+    void on_textEdit_selectionChanged();
+
+    void on_textEdit_undoAvailable(bool b);
+
+    void on_textEdit_redoAvailable(bool b);
+
 private:
     Ui::MainWindow *ui;
     QLabel *wordCountLabel;
@@ -58,35 +165,6 @@ private:
 
     void SaveSettings();
     void LoadSettings();
-
-public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
-
-protected:
-    void closeEvent(QCloseEvent *event) override;
-
-private slots:
-    void on_action_New_triggered();
-    void on_action_Open_triggered();
-    void on_action_Save_triggered();
-    void on_action_Save_As_triggered();
-    void on_action_Paste_triggered();
-    void on_action_Copy_triggered();
-    void on_action_Cut_triggered();
-    void on_action_Undo_triggered();
-    void on_action_Redo_triggered();
-    void on_action_Exit_triggered();
-    void on_action_Font_triggered();
-    void on_action_Color_triggered();
-    void on_action_Delete_triggered();
-    void on_action_Select_All_triggered();
-    void on_actionPrint_triggered();
-    void on_action_New_Window_triggered();
-    void on_action_gui_style_Fusion_triggered();
-    void on_action_gui_style_Windows_old_triggered();
-    void on_action_gui_style_Windows_new_triggered();
-
 };
 
 
