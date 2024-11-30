@@ -720,4 +720,116 @@ void MainWindow::on_action_Exit_triggered()
     QWidget::close();
 }
 
+// начали реализовывать кастомизацию, тут именно текст внутри документа, дальше будет кастомизация меню бара, будет статус бар где будет отражать количество слов, знаков и т.д.
+
+/*
+void MainWindow::on_action_Font_triggered()
+{
+    bool ok;
+    tfont = QFontDialog::getFont(&ok, ui->textEdit->font(), this);
+    if(ok)
+    {
+        tfontsize = QString::number(tfont.pointSize());
+
+        tfontfamily = tfont.family();
+        if (tfont.weight() == 0)
+        {
+            tfontweight = "100";
+        }
+        else if (tfont.weight() == 12)
+        {
+            tfontweight = "200";
+        }
+        else if (tfont.weight() == 25)
+        {
+            tfontweight = "300";
+        }
+        else if (tfont.weight() == 50)
+        {
+            tfontweight = "400";
+        }
+        else if (tfont.weight() == 57)
+        {
+            tfontweight = "500";
+        }
+        else if (tfont.weight() == 63)
+        {
+            tfontweight = "600";
+        }
+        else if (tfont.weight() == 75)
+        {
+            tfontweight = "700";
+        }
+        else if (tfont.weight() == 81)
+        {
+            tfontweight = "800";
+        }
+        else if (tfont.weight() == 87)
+        {
+            tfontweight = "900";
+        }
+
+        if (tfont.italic() == true)
+        {
+            tfontstyle = "italic";
+        }
+        else
+        {
+            tfontstyle = "normal";
+        }
+
+        if (tfont.underline() == true)
+        {
+            tfontdecoration = "underline";
+        }
+        else if (tfont.strikeOut() == true)
+        {
+            tfontdecoration = "line-through";
+        }
+        else
+        {
+            tfontdecoration = "none";
+        }
+
+        if (texteditbcolor != "")
+        {
+            ui->textEdit->setStyleSheet("background-color: " + texteditbcolor + "; font-family: " + tfontfamily + "; font-size: " + tfontsize + "pt" + "; font-weight: " + tfontweight + "; font-style: " + tfontstyle + "; text-decoration: " + tfontdecoration + ";");
+        }
+        else
+        {
+            ui->textEdit->setStyleSheet("font-family: " + tfontfamily + "; font-size: " + tfontsize + "pt" + "; font-weight: " + tfontweight + "; font-style: " + tfontstyle + "; text-decoration: " + tfontdecoration + ";");
+        }
+    }
+}
+
+void MainWindow::on_action_Color_triggered()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+
+    if (ui->textEdit->toPlainText().isEmpty())
+    {
+        QColor color = QColorDialog::getColor(ui->textEdit->textColor());
+        if (color.isValid())
+        {
+            ui->textEdit->setTextColor(color);
+            sessiontfontcolor = color.name();
+        }
+    }
+    else
+    {
+        QColor color = QColorDialog::getColor(ui->textEdit->textColor());
+        if (color.isValid())
+        {
+            ui->textEdit->selectAll();
+            ui->textEdit->setTextColor(color);
+            ui->textEdit->setTextCursor(cursor);
+            sessiontfontcolor = color.name();
+        }
+    }
+
+}
+
+
+*/
+
 
