@@ -377,8 +377,279 @@ void MainWindow::LoadSettings()
     setting.endGroup();
 }
 
+void MainWindow::on_action_New_triggered() // может открыть новый документ для редактирования
+{
+    if (fileText != ui->textEdit->toPlainText())
+    {
+        if (isFresh == false)
+        {
+            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to " + currentFile + "?\n",
+                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
+                                                                       QMessageBox::Cancel);
+
+            if (resBtn == QMessageBox::No) {
+                currentFile.clear();
+                ui->textEdit->setText(QString());
+                this->setWindowTitle("Untitled - textr");
+                isFresh = true;
+                fileText = ui->textEdit->toPlainText();
+            } else if (resBtn == QMessageBox::Cancel) {
+                return;
+            }
+            else if (resBtn == QMessageBox::Yes) {
+                on_action_Save_triggered();
+                currentFile.clear();
+                ui->textEdit->setText(QString());
+                this->setWindowTitle("Untitled - textr");
+                isFresh = true;
+                fileText = ui->textEdit->toPlainText();
+            }
+        }
+        else
+        {
+            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to Untitled?\n",
+                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
+                                                                       QMessageBox::Cancel);
+
+            if (resBtn == QMessageBox::No) {
+                currentFile.clear();
+                ui->textEdit->setText(QString());
+                this->setWindowTitle("Untitled - textr");
+                isFresh = true;
+                fileText = ui->textEdit->toPlainText();
+            } else if (resBtn == QMessageBox::Cancel) {
+                return;
+            }
+            else if (resBtn == QMessageBox::Yes) {
+                on_action_Save_As_triggered();
+                currentFile.clear();
+                ui->textEdit->setText(QString());
+                this->setWindowTitle("Untitled - textr");
+                isFresh = true;
+                fileText = ui->textEdit->toPlainText();
+            }
+        }
+    }
+    else
+    {
+        currentFile.clear();
+        ui->textEdit->setText(QString());
+        this->setWindowTitle("Untitled - textr");
+        isFresh = true;
+        fileText = ui->textEdit->toPlainText();
+    }
+}
+
+void MainWindow::on_action_Open_triggered() // открыть уже существующий документ 
+{
+    if (fileText != ui->textEdit->toPlainText())
+    {
+        if (isFresh == false)
+        {
+            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to " + currentFile + "?\n",
+                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
+                                                                       QMessageBox::Cancel);
+
+            if (resBtn == QMessageBox::No) {
+            } else if (resBtn == QMessageBox::Cancel) {
+                return;
+            }
+            else if (resBtn == QMessageBox::Yes) {
+                on_action_Save_triggered();
+            }
+        }
+        else
+        {
+            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to Untitled?\n",
+                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
+                                                                       QMessageBox::Cancel);
+
+            if (resBtn == QMessageBox::No) {
+            } else if (resBtn == QMessageBox::Cancel) {
+                return;
+            }
+            else if (resBtn == QMessageBox::Yes) {
+                on_action_Save_As_triggered();
+            }
+        }
+    }
+
+    QFile file;
+    {
+        QFileDialog fileDialog;
+        fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+        fileDialog.setFileMode(QFileDialog::ExistingFile);
+        fileDialog.setViewMode(QFileDialog::Detail);
+        if(fileDialog.exec() != QFileDialog::Rejected)
+        {
+            file.setFileName(fileDialog.selectedFiles().at(0));
+        }
+        else
+        {
+            return;
+        }
+    }
+    if (!file.open(QIODevice::ReadOnly | QFile::Text))
+    {
+        QMessageBox errorMessage;
+        errorMessage.setWindowTitle("Error");
+        errorMessage.setIcon(QMessageBox::Warning);
+        errorMessage.setText("textr was unable to open this file.");
+        errorMessage.setInformativeText("Make sure this file exists and has permission to read.");
+        errorMessage.exec();
+        return;
+    }
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+
+    while(!in.atEnd())
+    {
+        ui->textEdit->append(in.readLine());
+        if(in.status() != QTextStream::Ok)
+        {
+            QMessageBox errorMessage;
+            errorMessage.setWindowTitle("Error");
+            errorMessage.setIcon(QMessageBox::Critical);
+            errorMessage.setText("An unexpected error has happened while opening this file.");
+            errorMessage.setInformativeText("Please reopen this file or choose another one.");
+            errorMessage.exec();
+            file.close();
+            return;
+        }
+    }
+    file.close();
+
+    ui->textEdit->document()->toPlainText();
+    setWindowTitle(QFileInfo(file.fileName()).fileName() + " - textr");
+    currentFile = QFileInfo(file.fileName()).fileName();
+    isFresh = false;
+    fileText = ui->textEdit->toPlainText();
+
+    if (ui->textEdit->toPlainText().isEmpty())
+    {
+        ui->action_Select_All->setEnabled(true);
+    }
+    else
+    {
+        ui->action_Select_All->setDisabled(true);
+    }
+
+    ui->textEdit->moveCursor(QTextCursor::Start);
+}
+
+void MainWindow::on_action_Save_triggered() // сохранить изменения
+{
+    QSaveFile file;
+    if (currentFile.isEmpty())
+    {
+        QFileDialog fileDialog;
+        fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+        fileDialog.setFileMode(QFileDialog::AnyFile);
+        fileDialog.setViewMode(QFileDialog::Detail);
+        if(fileDialog.exec() != QFileDialog::Rejected)
+        {
+            file.setFileName(fileDialog.selectedFiles().at(0));
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        file.setFileName(currentFile);
+    }
+    if (!file.open(QIODevice::WriteOnly | QFile::Text))
+    {
+        QMessageBox errorMessage;
+        errorMessage.setWindowTitle("Error");
+        errorMessage.setIcon(QMessageBox::Warning);
+        errorMessage.setText("textr was unable to save changes.");
+        errorMessage.setInformativeText("Make sure this file exists and has permission to write.");
+        errorMessage.exec();
+        return;
+    }
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+
+    out << ui->textEdit->toPlainText();
+    if(out.status() != QTextStream::Ok)
+    {
+        {
+            QMessageBox errorMessage;
+            errorMessage.setWindowTitle("Error");
+            errorMessage.setIcon(QMessageBox::Critical);
+            errorMessage.setText("An unexpected error has happened while saving changes.");
+            errorMessage.setInformativeText("Please reopen this file or choose another one.");
+            errorMessage.exec();
+        }
+        file.cancelWriting();
+        file.commit();
+        return;
+    }
+    file.commit();
+
+    setWindowTitle(QFileInfo(file.fileName()).fileName() + " - textr");
+    currentFile = QFileInfo(file.fileName()).fileName();
+    fileText = ui->textEdit->toPlainText();
+    isFresh = false;
+}
+
+void MainWindow::on_action_Save_As_triggered() // сохранить и указать где 
+{
+    QSaveFile file;
+    {
+        QFileDialog fileDialog;
+        fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+        fileDialog.setFileMode(QFileDialog::AnyFile);
+        fileDialog.setViewMode(QFileDialog::Detail);
+        if(fileDialog.exec() != QFileDialog::Rejected)
+        {
+            file.setFileName(fileDialog.selectedFiles().at(0));
+        }
+        else
+        {
+            return;
+        }
+    }
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox errorMessage;
+        errorMessage.setWindowTitle("Error");
+        errorMessage.setIcon(QMessageBox::Warning);
+        errorMessage.setText("textr was unable to save changes.");
+        errorMessage.setInformativeText("Make sure this file exists and has permission to write.");
+        errorMessage.exec();
+        return;
+    }
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+
+    out << ui->textEdit->toPlainText();
+    if(out.status() != QTextStream::Ok)
+    {
+        {
+            QMessageBox errorMessage;
+            errorMessage.setWindowTitle("Error");
+            errorMessage.setIcon(QMessageBox::Critical);
+            errorMessage.setText("An unexpected error has happened while saving changes.");
+            errorMessage.setInformativeText("Please reopen this file or choose another one.");
+            errorMessage.exec();
+        }
+        file.cancelWriting();
+        file.commit();
+        return;
+    }
+    file.commit();
+
+    setWindowTitle(QFileInfo(file.fileName()).fileName() + " - textr");
+    currentFile = QFileInfo(file.fileName()).fileName();
+    fileText = ui->textEdit->toPlainText();
+    isFresh = false;
+}
 
 
+// внизу реализованы стандартные функции копирования, вставки и т.д.
 void MainWindow::on_action_Undo_triggered()
 {
     ui->textEdit->undo();
