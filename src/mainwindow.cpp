@@ -17,14 +17,31 @@
 #include <QDesktopServices>
 #include <QRegularExpression>
 
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QSettings>
+#include <QFile>
+#include <QSaveFile>
+#include <QLabel>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QMainWindow>
+#include <QCloseEvent>
+#include <QFontDialog>
+#include <QColorDialog>
+#include <QTextEdit>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QDesktopServices>
+#include <QRegularExpression>
+
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     QApplication::setStyle("fusion");
     setWindowTitle("Untitled - textr");
     fileText = ui->textEdit->toPlainText();
-
-    ui->action_gui_style_Windows_new->setEnabled(true);
-
+    
     ui->action_Undo->setDisabled(true);
     ui->action_Redo->setDisabled(true);
     ui->action_Copy->setDisabled(true);
@@ -57,10 +74,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     ui->action_Lines_Counter_On->setCheckable(true);
     ui->action_Lines_Counter_Off->setCheckable(true);
     ui->action_Lines_Counter_Off->setChecked(true);
-    ui->action_gui_style_Fusion->setCheckable(true);
-    ui->action_gui_style_Windows_old->setCheckable(true);
-    ui->action_gui_style_Windows_new->setCheckable(true);
-    ui->action_gui_style_Fusion->setChecked(true);
     ui->action_statusBar_On->setChecked(false);
     ui->action_statusBar_Off->setChecked(true);
     ui->action_Word_Counter_On->setDisabled(true);
@@ -74,24 +87,24 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     ui->action_statusBar_Appearance->setDisabled(true);
     ui->action_statusBar_Reset_to_default->setDisabled(true);
     ui->statusbar->hide();
-
+    
     linesCountLabel = new QLabel(this);
     charCountLabel = new QLabel(this);
     wordCountLabel = new QLabel(this);
-
+    
     ui->statusbar->addPermanentWidget(linesCountLabel);
     ui->statusbar->addPermanentWidget(charCountLabel);
     ui->statusbar->addPermanentWidget(wordCountLabel);
-
+    
     LoadSettings();
-
+    
     QStringList arguments = QCoreApplication::arguments();
     if(arguments.length() > 1)
     {
         outsideFileName = arguments[1];
         outsideNotepadOpen();
     }
-
+    
     QColor textfcolor = ui->textEdit->textColor();
     textfontcolor = textfcolor.name();
 }
@@ -101,189 +114,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_action_Save_triggered() {
-    QSaveFile file;
-    if (currentFile.isEmpty()) {
-        QFileDialog fileDialog;
-        fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-        fileDialog.setFileMode(QFileDialog::AnyFile);
-        fileDialog.setViewMode(QFileDialog::Detail);
-        if(fileDialog.exec() != QFileDialog::Rejected) {
-            file.setFileName(fileDialog.selectedFiles().at(0));
-        }
-        else {
-            return;
-        }
-    }
-    else{
-        file.setFileName(currentFile);
-    }
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox errorMessage;
-        errorMessage.setWindowTitle("Error");
-        errorMessage.setIcon(QMessageBox::Warning);
-        errorMessage.setText("textr was unable to save changes.");
-        errorMessage.setInformativeText("Make sure this file exists and has permission to write.");
-        errorMessage.exec();
-        return;
-    }
-    QTextStream out(&file);
-    out.setEncoding(QStringConverter::Utf8);
-
-    out << ui->textEdit->toPlainText();
-    if(out.status() != QTextStream::Ok) {
-        {
-            QMessageBox errorMessage;
-            errorMessage.setWindowTitle("Error");
-            errorMessage.setIcon(QMessageBox::Critical);
-            errorMessage.setText("An unexpected error has happened while saving changes.");
-            errorMessage.setInformativeText("Please reopen this file or choose another one.");
-            errorMessage.exec();
-        }
-        file.cancelWriting();
-        file.commit();
-        return;
-    }
-    file.commit();
-
-    setWindowTitle(QFileInfo(file.fileName()).fileName() + " - textr");
-    currentFile = QFileInfo(file.fileName()).fileName();
-    fileText = ui->textEdit->toPlainText();
-    isFresh = false;
-}
-
-void MainWindow::on_action_Save_As_triggered()
+void MainWindow::SaveSettings()
 {
-    QSaveFile file;
-    {
-        QFileDialog fileDialog;
-        fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-        fileDialog.setFileMode(QFileDialog::AnyFile);
-        fileDialog.setViewMode(QFileDialog::Detail);
-        if(fileDialog.exec() != QFileDialog::Rejected)
-        {
-            file.setFileName(fileDialog.selectedFiles().at(0));
-        }
-        else
-        {
-            return;
-        }
-    }
-    if (!file.open(QFile::WriteOnly | QFile::Text))
-    {
-        QMessageBox errorMessage;
-        errorMessage.setWindowTitle("Error");
-        errorMessage.setIcon(QMessageBox::Warning);
-        errorMessage.setText("textr was unable to save changes.");
-        errorMessage.setInformativeText("Make sure this file exists and has permission to write.");
-        errorMessage.exec();
-        return;
-    }
-    QTextStream out(&file);
-    out.setEncoding(QStringConverter::Utf8);
-
-    out << ui->textEdit->toPlainText();
-    if(out.status() != QTextStream::Ok)
-    {
-        {
-            QMessageBox errorMessage;
-            errorMessage.setWindowTitle("Error");
-            errorMessage.setIcon(QMessageBox::Critical);
-            errorMessage.setText("An unexpected error has happened while saving changes.");
-            errorMessage.setInformativeText("Please reopen this file or choose another one.");
-            errorMessage.exec();
-        }
-        file.cancelWriting();
-        file.commit();
-        return;
-    }
-    file.commit();
-
-    setWindowTitle(QFileInfo(file.fileName()).fileName() + " - textr");
-    currentFile = QFileInfo(file.fileName()).fileName();
-    fileText = ui->textEdit->toPlainText();
-    isFresh = false;
-}
-
-
-void MainWindow::on_action_New_triggered()
-{
-    if (fileText != ui->textEdit->toPlainText())
-    {
-        if (isFresh == false)
-        {
-            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to " + currentFile + "?\n",
-                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
-                                                                       QMessageBox::Cancel);
-
-            if (resBtn == QMessageBox::No) {
-                currentFile.clear();
-                ui->textEdit->setText(QString());
-                this->setWindowTitle("Untitled - textr");
-                isFresh = true;
-                fileText = ui->textEdit->toPlainText();
-            } else if (resBtn == QMessageBox::Cancel) {
-                return;
-            }
-            else if (resBtn == QMessageBox::Yes) {
-                on_action_Save_triggered();
-                currentFile.clear();
-                ui->textEdit->setText(QString());
-                this->setWindowTitle("Untitled - textr");
-                isFresh = true;
-                fileText = ui->textEdit->toPlainText();
-            }
-        }
-        else
-        {
-            QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Exit", "Do you want to save changes to Untitled?\n",
-                                                                       QMessageBox::No | QMessageBox::Yes | QMessageBox::Cancel,
-                                                                       QMessageBox::Cancel);
-
-            if (resBtn == QMessageBox::No) {
-                currentFile.clear();
-                ui->textEdit->setText(QString());
-                this->setWindowTitle("Untitled - textr");
-                isFresh = true;
-                fileText = ui->textEdit->toPlainText();
-            } else if (resBtn == QMessageBox::Cancel) {
-                return;
-            }
-            else if (resBtn == QMessageBox::Yes) {
-                on_action_Save_As_triggered();
-                currentFile.clear();
-                ui->textEdit->setText(QString());
-                this->setWindowTitle("Untitled - textr");
-                isFresh = true;
-                fileText = ui->textEdit->toPlainText();
-            }
-        }
-    }
-    else
-    {
-        currentFile.clear();
-        ui->textEdit->setText(QString());
-        this->setWindowTitle("Untitled - textr");
-        isFresh = true;
-        fileText = ui->textEdit->toPlainText();
-    }
-}
-
-void MainWindow::SaveSettings() {
-
-QSettings setting("wiiun", "textr");
+    QSettings setting("wiiun", "textr");
 
     setting.beginGroup("MainWindow");
     setting.setValue("geometry", saveGeometry());
     setting.setValue("windowState", saveState());
-    setting.endGroup();
-
-    setting.beginGroup("Widget");
-    setting.setValue("widget.stylesheet", styleSheet());
-    setting.setValue("widgetbcolor", widgetbcolor);
-    setting.setValue("gui.style.fusion", ui->action_gui_style_Fusion->isChecked());
-    setting.setValue("gui.style.windows.old", ui->action_gui_style_Windows_old->isChecked());
-    setting.setValue("gui.style.windows.new", ui->action_gui_style_Windows_new->isChecked());
     setting.endGroup();
 
     setting.beginGroup("TextEdit");
@@ -345,34 +182,6 @@ void MainWindow::LoadSettings()
     setting.beginGroup("MainWindow");
     restoreGeometry(setting.value("geometry").toByteArray());
     restoreState(setting.value("windowState").toByteArray());
-    setting.endGroup();
-
-    setting.beginGroup("Widget");
-    QString widgetstylesheet = setting.value("widget.stylesheet").toString();
-    if (widgetstylesheet != "")
-    {
-        setStyleSheet(widgetstylesheet);
-    }
-    else
-    {
-        setStyleSheet("QStatusBar::item {border: None;}");
-    }
-    widgetbcolor = setting.value("widgetbcolor").toString();
-    bool isfusionchecked = setting.value("gui.style.fusion").toBool();
-    if (isfusionchecked == true)
-    {
-        on_action_gui_style_Fusion_triggered();
-    }
-    bool iswindowsoldchecked = setting.value("gui.style.windows.old").toBool();
-    if (iswindowsoldchecked == true)
-    {
-        on_action_gui_style_Windows_old_triggered();
-    }
-    bool iswindowsnewchecked = setting.value("gui.style.windows.new").toBool();
-    if (iswindowsnewchecked == true)
-    {
-        on_action_gui_style_Windows_new_triggered();
-    }
     setting.endGroup();
 
     setting.beginGroup("TextEdit");
@@ -566,6 +375,78 @@ void MainWindow::LoadSettings()
     statusbarbcolor = setting.value("statusbarbcolor").toString();
     statusbarfcolor = setting.value("statusbarfcolor").toString();
     setting.endGroup();
+}
+
+
+
+void MainWindow::on_action_Undo_triggered()
+{
+    ui->textEdit->undo();
+}
+
+void MainWindow::on_action_Redo_triggered()
+{
+    ui->textEdit->redo();
+}
+
+void MainWindow::on_textEdit_undoAvailable(bool b)
+{
+    if (b == true)
+    {
+        ui->action_Undo->setEnabled(true);
+    }
+    else
+    {
+        ui->action_Undo->setDisabled(true);
+    }
+}
+
+void MainWindow::on_textEdit_redoAvailable(bool b)
+{
+    if (b == true)
+    {
+        ui->action_Redo->setEnabled(true);
+    }
+    else
+    {
+        ui->action_Redo->setDisabled(true);
+    }
+}
+
+void MainWindow::on_action_Paste_triggered()
+{
+    ui->textEdit->paste();
+}
+
+void MainWindow::on_action_Copy_triggered()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    if(cursor.hasSelection())
+    {
+        ui->textEdit->copy();
+    }
+}
+
+void MainWindow::on_action_Cut_triggered()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    if(cursor.hasSelection())
+    {
+        ui->textEdit->cut();
+    }
+}
+
+void MainWindow::on_action_Delete_triggered()
+{
+    QTextCursor cursor = ui->textEdit->textCursor();
+    if(cursor.hasSelection()) {
+        cursor.deleteChar();
+    }
+}
+
+void MainWindow::on_action_Exit_triggered()
+{
+    QWidget::close();
 }
 
 
