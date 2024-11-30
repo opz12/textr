@@ -78,7 +78,6 @@
     <addaction name="action_Delete"/>
     <addaction name="separator"/>
     <addaction name="action_Select_All"/>
-    <addaction name="action_Date_Time"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuFormat">
@@ -90,8 +89,6 @@
     <addaction name="action_Font"/>
     <addaction name="action_Color"/>
     <addaction name="separator"/>
-    <addaction name="action_Uppercase"/>
-    <addaction name="action_Lowercase"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -133,23 +130,6 @@
      <addaction name="action_textEdit_Reset_to_default"/>
      <addaction name="separator"/>
      <addaction name="menu_Frame_Shape"/>
-    </widget>
-    <widget class="QMenu" name="menu_Widget">
-     <property name="title">
-      <string>&amp;Widget</string>
-     </property>
-     <widget class="QMenu" name="menuGUI_Style">
-      <property name="title">
-       <string>GUI Style</string>
-      </property>
-      <addaction name="action_gui_style_Fusion"/>
-      <addaction name="action_gui_style_Windows_old"/>
-      <addaction name="action_gui_style_Windows_new"/>
-     </widget>
-     <addaction name="action_widget_Appearance"/>
-     <addaction name="action_widget_Appearance_Reset_to_default"/>
-     <addaction name="separator"/>
-     <addaction name="menuGUI_Style"/>
     </widget>
     <widget class="QMenu" name="menu_Scroll_Bar">
      <property name="title">
@@ -198,7 +178,6 @@
      <addaction name="menu_Character_Counter"/>
      <addaction name="menu_Lines_Counter"/>
     </widget>
-    <addaction name="menu_Widget"/>
     <addaction name="menu_Text_Edit"/>
     <addaction name="menu_Menu_Bar"/>
     <addaction name="menu_Status_Bar"/>
