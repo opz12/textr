@@ -269,7 +269,7 @@ void MainWindow::on_action_New_triggered()
     }
 }
 
-/*
+
 
 void MainWindow::SaveSettings()
 {
@@ -280,15 +280,8 @@ void MainWindow::SaveSettings()
     setting.setValue("windowState", saveState());
     setting.endGroup();
 
-    setting.beginGroup("Widget");
-    setting.setValue("widget.stylesheet", styleSheet());
-    setting.setValue("widgetbcolor", widgetbcolor);
-    setting.setValue("gui.style.fusion", ui->action_gui_style_Fusion->isChecked());
-    setting.setValue("gui.style.windows.old", ui->action_gui_style_Windows_old->isChecked());
-    setting.setValue("gui.style.windows.new", ui->action_gui_style_Windows_new->isChecked());
-    setting.endGroup();
 
-    setting.beginGroup("TextEdit");
+    setting.beginGroup("TextEdit"); // касается изменения текста внутри документа (шрифт, цвет шрифта и т.д. т.п.)
     setting.setValue("textedit.word.wrap", ui->action_Word_Wrap->isChecked());
     setting.setValue("textedit.stylesheet", ui->textEdit->styleSheet());
     setting.setValue("textedit.font.color", ui->textEdit->textColor());
@@ -309,7 +302,7 @@ void MainWindow::SaveSettings()
     setting.setValue("texteditbcolor", texteditbcolor);
     setting.endGroup();
 
-    setting.beginGroup("MenuBar");
+    setting.beginGroup("MenuBar"); // кастомизация менюшки
     setting.setValue("menubar.stylesheet", ui->menubar->styleSheet());
     setting.setValue("mfontfamily", mfontfamily);
     setting.setValue("mfontsize", mfontsize);
@@ -318,25 +311,6 @@ void MainWindow::SaveSettings()
     setting.setValue("mfontdecoration", mfontdecoration);
     setting.setValue("menubarbcolor", menubarbcolor);
     setting.setValue("menubarfcolor", menubarfcolor);
-    setting.endGroup();
-
-    setting.beginGroup("StatusBar");
-    setting.setValue("statusbar.on", ui->action_statusBar_On->isChecked());
-    setting.setValue("statusbar.off", ui->action_statusBar_Off->isChecked());
-    setting.setValue("statusbar.stylesheet", ui->statusbar->styleSheet());
-    setting.setValue("statusbar.word.counter.on", ui->action_Word_Counter_On->isChecked());
-    setting.setValue("statusbar.word.counter.off", ui->action_Word_Counter_Off->isChecked());
-    setting.setValue("statusbar.char.counter.on", ui->action_Character_Counter_On->isChecked());
-    setting.setValue("statusbar.char.counter.off", ui->action_Character_Counter_Off->isChecked());
-    setting.setValue("statusbar.lines.counter.on", ui->action_Lines_Counter_On->isChecked());
-    setting.setValue("statusbar.lines.counter.off", ui->action_Lines_Counter_Off->isChecked());
-    setting.setValue("sfontfamily", sfontfamily);
-    setting.setValue("sfontsize", sfontsize);
-    setting.setValue("sfontweight", sfontweight);
-    setting.setValue("sfontstyle", sfontstyle);
-    setting.setValue("sfontdecoration", sfontdecoration);
-    setting.setValue("statusbarbcolor", statusbarbcolor);
-    setting.setValue("statusbarfcolor", statusbarfcolor);
     setting.endGroup();
 }
 
@@ -349,33 +323,6 @@ void MainWindow::LoadSettings()
     restoreState(setting.value("windowState").toByteArray());
     setting.endGroup();
 
-    setting.beginGroup("Widget");
-    QString widgetstylesheet = setting.value("widget.stylesheet").toString();
-    if (widgetstylesheet != "")
-    {
-        setStyleSheet(widgetstylesheet);
-    }
-    else
-    {
-        setStyleSheet("QStatusBar::item {border: None;}");
-    }
-    widgetbcolor = setting.value("widgetbcolor").toString();
-    bool isfusionchecked = setting.value("gui.style.fusion").toBool();
-    if (isfusionchecked == true)
-    {
-        on_action_gui_style_Fusion_triggered();
-    }
-    bool iswindowsoldchecked = setting.value("gui.style.windows.old").toBool();
-    if (iswindowsoldchecked == true)
-    {
-        on_action_gui_style_Windows_old_triggered();
-    }
-    bool iswindowsnewchecked = setting.value("gui.style.windows.new").toBool();
-    if (iswindowsnewchecked == true)
-    {
-        on_action_gui_style_Windows_new_triggered();
-    }
-    setting.endGroup();
 
     setting.beginGroup("TextEdit");
     wordwrapchecked = setting.value("textedit.word.wrap").toBool();
@@ -499,75 +446,6 @@ void MainWindow::LoadSettings()
     menubarbcolor = setting.value("menubarbcolor").toString();
     menubarfcolor = setting.value("menubarfcolor").toString();
     setting.endGroup();
-
-    setting.beginGroup("StatusBar");
-    bool statusbaron = setting.value("statusbar.on").toBool();
-
-    if (statusbaron == true)
-    {
-        on_action_statusBar_On_triggered();
-    }
-
-    bool statusbaroff = setting.value("statusbar.off").toBool();
-
-    if (statusbaroff == true)
-    {
-        on_action_statusBar_Off_triggered();
-    }
-
-    QString statusbarstylesheet = setting.value("statusbar.stylesheet").toString();
-    ui->statusbar->setStyleSheet(statusbarstylesheet);
-
-    bool statusbarwordcounteron = setting.value("statusbar.word.counter.on").toBool();
-
-    if (statusbarwordcounteron == true)
-    {
-        on_action_Word_Counter_On_triggered();
-    }
-
-    bool statusbarwordcounteroff = setting.value("statusbar.word.counter.off").toBool();
-
-    if (statusbarwordcounteroff == true)
-    {
-        on_action_Word_Counter_Off_triggered();
-    }
-
-    bool statusbarcharcounteron = setting.value("statusbar.char.counter.on").toBool();
-
-    if (statusbarcharcounteron == true)
-    {
-        on_action_Character_Counter_On_triggered();
-    }
-
-    bool statusbarcharcounteroff = setting.value("statusbar.char.counter.off").toBool();
-
-    if (statusbarcharcounteroff == true)
-    {
-        on_action_Character_Counter_Off_triggered();
-    }
-
-    bool statusbarlinescounteron = setting.value("statusbar.lines.counter.on").toBool();
-
-    if (statusbarlinescounteron == true)
-    {
-        on_action_Lines_Counter_On_triggered();
-    }
-
-    bool statusbarlinescounteroff = setting.value("statusbar.lines.counter.off").toBool();
-
-    if (statusbarlinescounteroff == true)
-    {
-        on_action_Lines_Counter_Off_triggered();
-    }
-
-    sfontfamily = setting.value("sfontfamily").toString();
-    sfontsize = setting.value("sfontsize").toString();
-    sfontweight = setting.value("sfontweight").toString();
-    sfontstyle = setting.value("sfontstyle").toString();
-    sfontdecoration = setting.value("sfontdecoration").toString();
-    statusbarbcolor = setting.value("statusbarbcolor").toString();
-    statusbarfcolor = setting.value("statusbarfcolor").toString();
-    setting.endGroup();
 }
 
-*/
+
