@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>res/icons/cut.bmp</file>
+        <file>res/icons/folder.bmp</file>
+        <file>res/icons/new.bmp</file>
+        <file>res/icons/printer.bmp</file>
+        <file>res/icons/save.bmp</file>
+        <file>res/icons/search.bmp</file>
+        <file>res/icons/undo.bmp</file>
+        <file>res/icons/copy.bmp</file>
+        <file>res/icons/paste.bmp</file>
+        <file>res/icons/save-as.bmp</file>
+        <file>res/icons/redo.bmp</file>
+        <file>res/icons/bmp/copy.bmp</file>
+        <file>res/icons/bmp/cut.bmp</file>
+        <file>res/icons/bmp/folder.bmp</file>
+        <file>res/icons/bmp/new.bmp</file>
+        <file>res/icons/bmp/paste.bmp</file>
+        <file>res/icons/bmp/print.bmp</file>
+        <file>res/icons/bmp/redo.bmp</file>
+        <file>res/icons/bmp/save.bmp</file>
+        <file>res/icons/bmp/save_as.bmp</file>
+        <file>res/icons/bmp/sonic.bmp</file>
+        <file>res/icons/bmp/undo.bmp</file>
+    </qresource>
+</RCC>
